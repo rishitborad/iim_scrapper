@@ -361,7 +361,6 @@ def get_job_list(driver):
 
     load_job_listing(driver)
 
-    '''
     #get job list
     jobs = listing.find_elements_by_xpath("//span[@class='pull-left']/a[@class='mrmob5 hidden-xs']")
     for job in jobs:
@@ -370,7 +369,7 @@ def get_job_list(driver):
                 'JobLink': job.get_attribute('href')}
         jobs_info.append(info)
     return jobs_info
-    '''
+
 def get_job_details(driver, job_list):
     job_details = []
     for job in job_list:
@@ -402,17 +401,11 @@ if __name__ == '__main__':
     remaining_sub_categories = []               # stores sub_category <name> and <link> from the first page
     remaining_categories = []                   # Filter categories seen in file
 
-    #see_whats_already_scrapped(scrapped_pairs)
-    #if scrapped_pairs:
-    #    print(scrapped_pairs)
-
     web_driver = get_working_driver(COMPANIES_URL, 'page-content-wrapper')
 
     job_list = get_job_list(web_driver)
-    count = 0
-    while(1):
-        count = count+1
-    #job_description = get_job_details(web_driver, job_list)
+
+    job_description = get_job_details(web_driver, job_list)
 
     '''
     get_categories_from_web(web_driver, all_categories)
