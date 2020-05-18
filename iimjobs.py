@@ -20,7 +20,7 @@ def get_working_driver(url, element_to_load):
     try:
         driver = webdriver.Chrome(
                         #executable_path='/Users/rishitmac/Documents/JobScraper/indeed_scrapper/chromedriver')
-                        executable_path='/Users/aceinna_rishit/Documents/ScrapperScript/iimjobs/chromedriver')
+                        executable_path='/Users/rishitmac/Documents/JobScraper/iim_scrapper/chromedriver')
         driver.set_page_load_timeout(TIMEOUT)
         #driver.maximize_window()
     except Exception as e:
@@ -297,26 +297,32 @@ def see_whats_already_scrapped(list):
 def get_jobs_description(driver, link):
     # open link in above created new tab
     driver.get(link)
-    block = driver.find_element_by_id('page-content-wrapper')
-    jobrole = block.find_element_by_xpath("//div[@class='page-content inset ']/div[@class='info col-md-9 col-sm-9 col-xs-12 pdlr0 mnht520  ']/div[@class='details job-description ']")
-    '''
-    if (len(jobrole.text) < 5):
-        try:
-            jobrole = block.find_element_by_xpath("//div[@class='page-content inset ']/div[@class='info col-md-9 col-sm-9 col-xs-12 pdlr0 mnht520  ']/div[@class='details job-description ']/p[2]")
-        except NoSuchElementException as ex:
-            print("Handle")
-    '''
-    #print("JOB ROLE:", jobrole.text)
-    WebDriverWait(driver, TIMEOUT).until(ec.presence_of_element_located((By.ID, 'jobrecinfo')))
-    jobrecinfo = driver.find_element_by_id('jobrecinfo')
-    description = { 'description': jobrole.text,
-                    'location': (jobrecinfo.find_element_by_xpath("//span[@class='jobloc mt5 pull-left']")).text.split("\n")[1],
-                    'category': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][2]")).text.split("\n")[1],
-                    'jobid': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][3]")).text.split("\n")[1],
-                    'postedon': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][4]")).text.split("\n")[1],
-                    'views': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][5]")).text.split("\n")[1],
-                    'applicants': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][6]")).text.split("\n")[1]}
-    return description
+    description = dict()
+    try:
+        block = driver.find_element_by_id('page-content-wrapper')
+        jobrole = block.find_element_by_xpath("//div[@class='page-content inset ']/div[@class='info col-md-9 col-sm-9 col-xs-12 pdlr0 mnht520  ']/div[@class='details job-description ']")
+        '''
+        if (len(jobrole.text) < 5):
+            try:
+                jobrole = block.find_element_by_xpath("//div[@class='page-content inset ']/div[@class='info col-md-9 col-sm-9 col-xs-12 pdlr0 mnht520  ']/div[@class='details job-description ']/p[2]")
+            except NoSuchElementException as ex:
+                print("Handle")
+        '''
+        #print("JOB ROLE:", jobrole.text)
+        WebDriverWait(driver, TIMEOUT).until(ec.presence_of_element_located((By.ID, 'jobrecinfo')))
+        jobrecinfo = driver.find_element_by_id('jobrecinfo')
+        description = { 'description': jobrole.text,
+                        'location': (jobrecinfo.find_element_by_xpath("//span[@class='jobloc mt5 pull-left']")).text.split("\n")[1],
+                        'category': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][2]")).text.split("\n")[1],
+                        'jobid': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][3]")).text.split("\n")[1],
+                        'postedon': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][4]")).text.split("\n")[1],
+                        'views': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][5]")).text.split("\n")[1],
+                        'applicants': (jobrecinfo.find_element_by_xpath("//span[@class='mt5 pull-left'][6]")).text.split("\n")[1]}
+        return description
+    except Exception as e:
+        print(e)
+        return description
+
 
 def load_job_listing(driver):
 
@@ -337,20 +343,31 @@ def load_job_listing(driver):
     while True:
         try:
             WebDriverWait(driver, TIMEOUT).until(ec.presence_of_element_located((By.ID, 'navigationTrigger')))
+            print("Waiting for element")
+            try:
+                WebDriverWait(driver, TIMEOUT).until(ec.element_to_be_clickable((By.ID, "navigationTrigger")))
+                print("Waiting for clickable")
+            except Exception as ex:
+                print(ex)
+                new_height = driver.execute_script("return document.body.scrollHeight")
+
+            time.sleep(2)
             navtrig = driver.find_element_by_id('navigationTrigger')
             loadmorebutton = navtrig.find_element_by_xpath("//div[@class='ias_trigger']/a")
+            print("get button")
             time.sleep(2)
             loadmorebutton.click()
-            time.sleep(2)
             print("Click")
+            time.sleep(2)
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             print("Scroll")
             # Wait to load page
-            #time.sleep(2)
+            time.sleep(2)
             # Calculate new scroll height and compare with last scroll height
             new_height = driver.execute_script("return document.body.scrollHeight")
+            time.sleep(2)
         except Exception as e:
-            #print(e)
+            print(e)
             break
 
 def get_job_list(driver):
@@ -378,6 +395,7 @@ def get_job_details(driver, job_list):
         description = get_jobs_description(driver, job['JobLink'])
         if not description:
             print("Empty Description")
+            continue
         print("JOB # ", job_list.index(job),"/" ,len(job_list))
         print(job_title, description['location'])
         job_detail = {'category':description['category'],
@@ -433,3 +451,5 @@ if __name__ == '__main__':
 
     '''
     web_driver.quit()
+
+    #FAILED URL: https://www.iimjobs.com/j/it-advisor-it-advisor-it-test-job-please-ignore-0-5-yrs-820364.html?ref=cl
