@@ -1,4 +1,5 @@
 from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -6,7 +7,10 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException, NoSuchElementException
 import time
 import csv
+from selenium import webdriver
 
+
+#driver = webdriver.Chrome(ChromeDriverManager().install())
 
 TIMEOUT = 60
 COMPANIES_URL = 'https://www.iimjobs.com/c/finance-jobs-13.html'
@@ -18,9 +22,9 @@ SCROLL_PAUSE_TIME = 3
 
 def get_working_driver(url, element_to_load):
     try:
-        driver = webdriver.Chrome(
+        driver = webdriver.Chrome(ChromeDriverManager().install())
                         #executable_path='/Users/rishitmac/Documents/JobScraper/indeed_scrapper/chromedriver')
-                        executable_path='/Users/rishitmac/Documents/JobScraper/iim_scrapper/chromedriver')
+                        #executable_path='/Users/rishitmac/Documents/JobScraper/iim_scrapper/chromedriver')
         driver.set_page_load_timeout(TIMEOUT)
         #driver.maximize_window()
     except Exception as e:
@@ -411,6 +415,36 @@ def get_job_details(driver, job_list):
         job_details.append(job_detail)
     return job_details
 
+def parse_sub_categories(category):
+    sub_category_detail = []
+    #category_name = category.find_element_by_tag_name("h1")
+    #category_link = category.find_element_by_link_text(category_name.text).get_attribute('href')
+    list = category.find_elements_by_tag_name("li")
+    for item in list:
+        sub_cat = {'name': category.find_element_by_tag_name("h1").text,
+                    'link':category.find_element_by_link_text(category.find_element_by_tag_name("h1").text).get_attribute('href'),
+                    'subcategory_name': item.text,
+                    'subcategory_link': item.find_element_by_link_text(item.text).get_attribute('href')}
+        sub_category_detail.append(sub_cat)
+    return sub_category_detail
+
+def get_job_categories(driver):
+    category_details = []
+    categories_block = driver.find_element_by_id("subcategories")
+    blocks = categories_block.find_elements_by_xpath("//div[@class='pull-left subcolumn col-md-3 col-sm-6 col-xs-12']")
+    for block in blocks:
+        sub_category_detail = parse_sub_categories(block)
+        #category_name = block.find_element_by_tag_name("h1")
+        #category_link = block.find_element_by_link_text(category_name.text).get_attribute('href')
+        category_details.append(sub_category_detail)
+    return category_details
+
+    #for menu in menu_bar:
+    #    category_name = menu.find_element_by_id('topmenu').get_attribute('text')
+    #    sub_cats = menu.find_elements_by_xpath("//ul/li")
+    #    for sub_cat in sub_cats:
+    #        print(sub_cat.text)
+
 if __name__ == '__main__':
 
     scrapped_pairs = []                         # list of pairs of (Category, Sub Category)
@@ -421,9 +455,19 @@ if __name__ == '__main__':
 
     web_driver = get_working_driver(COMPANIES_URL, 'page-content-wrapper')
 
-    job_list = get_job_list(web_driver)
+    categories = get_job_categories(web_driver);
 
-    job_description = get_job_details(web_driver, job_list)
+    for category in categories:
+         for cat in category:
+             print(cat['name'])
+             print(cat['link'])
+             print(cat['subcategory_name'])
+             print(cat['subcategory_link'])
+             print("##########################")
+
+    #job_list = get_job_list(web_driver)
+
+    #job_description = get_job_details(web_driver, job_list)
 
     '''
     get_categories_from_web(web_driver, all_categories)
