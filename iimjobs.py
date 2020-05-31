@@ -374,8 +374,11 @@ def load_job_listing(driver):
             print(e)
             break
 
-def get_job_list(driver):
+def get_job_list(driver, link):
     jobs_info = []
+
+    driver.get(link)
+
     listing = driver.find_element_by_class_name('listing')
     if not listing:
         return null
@@ -391,7 +394,7 @@ def get_job_list(driver):
         jobs_info.append(info)
     return jobs_info
 
-def get_job_details(driver, job_list):
+def get_job_details(driver, job_list, category, subcategory):
     job_details = []
     for job in job_list:
         link = job['JobLink']
@@ -402,7 +405,8 @@ def get_job_details(driver, job_list):
             continue
         print("JOB # ", job_list.index(job),"/" ,len(job_list))
         print(job_title, description['location'])
-        job_detail = {'category':description['category'],
+        job_detail = {'category':category,
+                        'subcategory':subcategory,
                         'link': link,
                         'title': job_title,
                         'id': description['jobid'],
@@ -411,7 +415,7 @@ def get_job_details(driver, job_list):
                         'applicants': description['applicants'],
                         'description': description['description']}
 
-        write_to_csv_by_line(job_detail, ['category','link', 'title', 'id', 'postedOn', 'views', 'applicants', 'description'])
+        write_to_csv_by_line(job_detail, ['category', 'subcategory','link', 'title', 'id', 'postedOn', 'views', 'applicants', 'description'])
         job_details.append(job_detail)
     return job_details
 
@@ -439,12 +443,6 @@ def get_job_categories(driver):
         category_details.append(sub_category_detail)
     return category_details
 
-    #for menu in menu_bar:
-    #    category_name = menu.find_element_by_id('topmenu').get_attribute('text')
-    #    sub_cats = menu.find_elements_by_xpath("//ul/li")
-    #    for sub_cat in sub_cats:
-    #        print(sub_cat.text)
-
 if __name__ == '__main__':
 
     scrapped_pairs = []                         # list of pairs of (Category, Sub Category)
@@ -464,6 +462,8 @@ if __name__ == '__main__':
              print(cat['subcategory_name'])
              print(cat['subcategory_link'])
              print("##########################")
+             job_list = get_job_list(web_driver, cat['subcategory_link'])
+             job_description = get_job_details(web_driver, job_list, cat['name'],cat['subcategory_name'])
 
     #job_list = get_job_list(web_driver)
 
